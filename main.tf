@@ -13,11 +13,29 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "b" {
-  bucket = "terraform-test-practice"
+  bucket = "bucket-with-site"
   acl    = "public-read"
 
-  tags = {
-    Name        = "My bucket"
-    Environment = "Dev"
+  website {
+    index_document = "index.html"
+
+    routing_rules = <<EOF
+[{
+    "Condition": {
+        "KeyPrefixEquals": "docs/"
+    },
+    "Redirect": {
+        "ReplaceKeyPrefixWith": "documents/"
+    }
+}]
+EOF
   }
+}
+
+resource "aws_s3_bucket_object" "index" {
+  bucket = aws_s3_bucket.b.id
+  key    = "index.html"
+  source = "index.html"
+  acl = "public-read"
+  content_type = "text/html"
 }
